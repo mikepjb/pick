@@ -30,6 +30,8 @@ func printInterface() {
 }
 
 func main() {
+	originalStdOut := os.Stdout
+
 	scanner := bufio.NewScanner(os.Stdin)
 
 	var haystack []string
@@ -44,8 +46,19 @@ func main() {
 
 	fmt.Print("> ")
 
-	for {
+	outScanner := bufio.NewScanner(os.Stdout)
+
+	var result string
+	for outScanner.Scan() {
+		// fmt.Print(outScanner.Text())
+		filterResults := Filter(haystack, outScanner.Text())
+		fmt.Println(filterResults)
+
+		result = filterResults[0]
+		break
 	}
 
 	// fmt.Println(Filter(haystack, text))
+	os.Stdout = originalStdOut
+	fmt.Println(result)
 }
