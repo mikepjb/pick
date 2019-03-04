@@ -2,14 +2,18 @@ package main
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 )
 
 func Filter(col []string, filter string) []string {
 	result := []string{}
 
+	regexpFilter := strings.Join(strings.Split(filter, ""), "+.*") + "+"
+
 	for _, e := range col {
-		if strings.Contains(e, filter) {
+		match, _ := regexp.MatchString(regexpFilter, e)
+		if match {
 			result = append(result, e)
 		}
 	}
