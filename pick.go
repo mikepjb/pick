@@ -26,13 +26,26 @@ func Filter(col []string, filter string) []string {
 // 12th row contains: "80/360 > [current search]"
 // remaining 11 rows have top matches
 // one match is selected as current
-// func printInterface() {
-// }
+func printInterface() {
+}
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 
+	var haystack []string
+
 	for scanner.Scan() {
-		fmt.Println(scanner.Text())
+		haystack = append(haystack, scanner.Text())
 	}
+
+	for _, e := range haystack {
+		fmt.Println(e)
+	}
+
+	fmt.Print("> ")
+
+	for {
+	}
+
+	// fmt.Println(Filter(haystack, text))
 }
