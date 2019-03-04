@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -21,5 +23,10 @@ func Filter(col []string, filter string) []string {
 }
 
 func main() {
-	fmt.Println("hello")
+	// fmt.Println("hello")
+	scanner := bufio.NewScanner(os.Stdin)
+
+	for scanner.Scan() {
+		fmt.Println(scanner.Text())
+	}
 }
