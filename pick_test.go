@@ -24,14 +24,26 @@ func TestFindsAllStringsContainingB(t *testing.T) {
 		"broken",
 	}
 
-	result := Filter(listOfFiles, "b")
+	resultB := Filter(listOfFiles, "b")
 
-	expectedResult := []string{
+	expectedResultForB := []string{
 		"bar",
 		"broken",
 	}
 
-	if !compareSlice(result, expectedResult) {
-		t.Errorf("did not get the list of expected files back")
+	if !compareSlice(resultB, expectedResultForB) {
+		t.Errorf("did not get the list of expected files back for filter b, got %v", resultB)
+	}
+
+	resultT := Filter(listOfFiles, "t")
+
+	expectedResultForT := []string{
+		"thing",
+		"other",
+		"things",
+	}
+
+	if !compareSlice(resultT, expectedResultForT) {
+		t.Errorf("did not get the list of expected files back for filter t, got: %v", resultT)
 	}
 }

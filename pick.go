@@ -1,12 +1,19 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 func Filter(col []string, filter string) []string {
-	return []string{
-		"bar",
-		"broken",
+	result := []string{}
+
+	for _, e := range col {
+		if strings.Contains(e, filter) {
+			result = append(result, e)
+		}
 	}
+	return result
 }
 
 func main() {
