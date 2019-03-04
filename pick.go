@@ -40,7 +40,10 @@ func main() {
 		haystack = append(haystack, scanner.Text())
 	}
 
-	for _, e := range haystack {
+	for i, e := range haystack {
+		if i == 15 {
+			break
+		}
 		fmt.Println(e)
 	}
 
