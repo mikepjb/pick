@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
-	"os/signal"
 	"regexp"
 	"strings"
-	"syscall"
+
+	"github.com/mikepjb/pick/src/ui"
 )
 
 const (
@@ -70,7 +69,7 @@ func printInterface(list []string, w *bufio.Writer) {
 		fmt.Fprintf(w, strings.Repeat("\033[K"+"\n", (20-len(list))))
 	}
 
-	fmt.Fprintf(w, "%d > ", len(list))
+	fmt.Fprintf(w, "%03d > ", len(list))
 
 	w.Flush()
 }
@@ -83,31 +82,14 @@ func main() {
 	}
 
 	ttyw := bufio.NewWriter(tty)
-
-	listIn := readStdin()
-	printInterface(listIn, ttyw)
-
 	ttyr := io.Reader(tty)
 
-	// disable input buffering
-	exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run()
-	// do not display entered characters on the screen
-	exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
-	// restore the echoing state when exiting
-	defer exec.Command("stty", "-F", "/dev/tty", "echo").Run()
-
-	// ensure we use echo even on sigterm/ctrl+c
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		<-c
-		exec.Command("stty", "-F", "/dev/tty", "echo").Run()
-		os.Exit(1)
-	}()
+	ui.SetAndProtectTerm()
 
 	var userSearch string
-
 	var b []byte = make([]byte, 1)
+	listIn := readStdin()
+	printInterface(listIn, ttyw)
 
 	for {
 		ttyr.Read(b)
