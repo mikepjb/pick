@@ -61,16 +61,16 @@ func main() {
 
 	ttyw.Flush()
 
-	fmt.Print("> ")
+	// fmt.Print("> ")
+	ttyw.WriteString("> ")
 
 	// outScanner := bufio.NewScanner(os.Stdout)
 	outScanner := bufio.NewScanner(tty)
 
 	var result string
 	for outScanner.Scan() {
-		// fmt.Print(outScanner.Text())
 		filterResults := Filter(haystack, outScanner.Text())
-		fmt.Println(filterResults)
+		ttyw.WriteString(strings.Join(filterResults, " ") + "\n")
 
 		result = filterResults[0]
 		break
@@ -79,5 +79,6 @@ func main() {
 	// fmt.Println(Filter(haystack, text))
 	// os.Stdout = originalStdOut
 
-	fmt.Println(result)
+	// fmt.Println(result)
+	fmt.Printf(result)
 }

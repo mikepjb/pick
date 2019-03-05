@@ -65,3 +65,11 @@ current "/dev/tty" for the terminal you're running in currently.
 stdout as a side effect prints here too?
 
 # How do I read from tty during pipe?
+
+Don't know..
+
+# VIM (not neovim) DOES READ/PROMPT
+
+probably because it's not being piped
+
+e.g vim_wrapper(ls | pick)
