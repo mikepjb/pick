@@ -55,7 +55,8 @@ func readStdin() []string {
 }
 
 func printInterface(list []string, w *bufio.Writer) {
-	w.WriteString("\033[20A") // move up 20 lines
+	w.WriteString("\033[19A") // move up 19 lines
+	w.WriteString("\033[1F")  // move to beginning of previous line
 
 	for i, e := range list {
 		if i == 20 {
@@ -110,8 +111,6 @@ func main() {
 		ttyw.WriteString("\033[s") // save cursor position
 		printInterface(Filter(listIn, userSearch), ttyw)
 		ttyw.WriteString("\033[u") // return cursor position
-		// ttyw.WriteString(userSearch)
-		ttyw.WriteString(string(b))
 		ttyw.Flush()
 	}
 }
