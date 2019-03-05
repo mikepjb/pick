@@ -22,61 +22,57 @@ func Filter(col []string, filter string) []string {
 	return result
 }
 
-// let's own 12 rows of the terminal
-// 12th row contains: "80/360 > [current search]"
-// remaining 11 rows have top matches
-// one match is selected as current
-func printInterface() {
+func readStdin() []string {
+	scanner := bufio.NewScanner(os.Stdin)
+	var list []string
+
+	for scanner.Scan() {
+		list = append(list, scanner.Text())
+	}
+
+	return list
 }
 
-// Display and Output handling
-
-// take stdin - read the list input to pick
-// write info the /dev/tty.. try this now.
+// let's own 20 rows of the terminal
+// 20th row contains: "80/360 > [current search]"
+// remaining 11 rows have top matches
+// one match is selected as current
+func printInterface(list []string, w *bufio.Writer) {
+	for i, e := range list {
+		if i == 20 {
+			break
+		}
+		w.WriteString(e + "\n")
+	}
+	w.WriteString("> ")
+	w.Flush()
+}
 
 func main() {
+	listIn := readStdin()
+
 	tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
+
 	if err != nil {
 		fmt.Printf("excuse me: %v", err)
 	}
 
 	ttyw := bufio.NewWriter(tty)
-	// ttyr := bufio.NewReader(tty)
-
-	scanner := bufio.NewScanner(os.Stdin)
-
-	var haystack []string
-
-	for scanner.Scan() {
-		haystack = append(haystack, scanner.Text())
-	}
-
-	for i, e := range haystack {
-		if i == 15 {
-			break
-		}
-		ttyw.WriteString(e + "\n")
-		// fmt.Println(e) // this goes to stdout
-	}
-
-	ttyw.Flush()
-
-	// fmt.Print("> ")
-	ttyw.WriteString("> ")
+	printInterface(listIn, ttyw)
 
 	// outScanner := bufio.NewScanner(os.Stdout)
 	outScanner := bufio.NewScanner(tty)
 
 	var result string
 	for outScanner.Scan() {
-		filterResults := Filter(haystack, outScanner.Text())
+		filterResults := Filter(listIn, outScanner.Text())
 		ttyw.WriteString(strings.Join(filterResults, " ") + "\n")
 
 		result = filterResults[0]
 		break
 	}
 
-	// fmt.Println(Filter(haystack, text))
+	// fmt.Println(Filter(listIn, text))
 	// os.Stdout = originalStdOut
 
 	// fmt.Println(result)
