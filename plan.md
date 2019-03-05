@@ -59,5 +59,9 @@ Yes you can but you won't see the output on your terminal (even after flushing)
 However `echo 1 > /dev/tty` prints 1 on the current terminal.
 
 I think /dev/tty is the current file for the output of your terminal.
+weirdly tailing it produces no output.. probably because it's pointing to the
+current "/dev/tty" for the terminal you're running in currently.
 
 stdout as a side effect prints here too?
+
+# How do I read from tty during pipe?

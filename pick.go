@@ -63,7 +63,8 @@ func main() {
 
 	fmt.Print("> ")
 
-	outScanner := bufio.NewScanner(os.Stdout)
+	// outScanner := bufio.NewScanner(os.Stdout)
+	outScanner := bufio.NewScanner(tty)
 
 	var result string
 	for outScanner.Scan() {
