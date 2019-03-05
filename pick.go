@@ -16,10 +16,24 @@ const (
 	KeyReturn = 0xA
 )
 
+// Inserts '+.*' between all chars to make the regex fuzzy
+func Fuzzy(filter string) string {
+	var newFilter string
+
+	for _, r := range filter {
+		newFilter += string(r)
+		if string(r) != "\\" {
+			newFilter += "+.*"
+		}
+	}
+
+	return newFilter
+}
+
 func Filter(col []string, filter string) []string {
 	result := []string{}
 
-	regexpFilter := strings.Join(strings.Split(filter, ""), "+.*") + "+"
+	regexpFilter := Fuzzy(strings.Replace(filter, ".", "\\.", -1))
 
 	for _, e := range col {
 		match, _ := regexp.MatchString(regexpFilter, e)

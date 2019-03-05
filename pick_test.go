@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -9,6 +8,11 @@ func compareSlice(a, b []string) bool {
 	if len(a) == 0 || len(b) == 0 {
 		return false
 	}
+
+	if len(a) != len(b) {
+		return false
+	}
+
 	for i := range a {
 		if a[i] != b[i] {
 			return false
@@ -21,6 +25,7 @@ var listOfFiles = []string{
 	"thing",
 	"other",
 	"things",
+	"thing.ext",
 	"bar",
 	"foo",
 	"broken",
@@ -45,6 +50,7 @@ func TestFindsSequentialSearches(t *testing.T) {
 		"thing",
 		"other",
 		"things",
+		"thing.ext",
 	}
 
 	if !compareSlice(resultT, expectedResultForT) {
@@ -54,11 +60,20 @@ func TestFindsSequentialSearches(t *testing.T) {
 
 func TestFindsFuzzySearches(t *testing.T) {
 	resultTS := Filter(listOfFiles, "ts")
-	fmt.Println(resultTS)
 
 	expectedResultForTS := []string{"things"}
 
 	if !compareSlice(resultTS, expectedResultForTS) {
 		t.Errorf("did not get the list of expected files back for filter ts, got: %v", resultTS)
+	}
+}
+
+func TestReplacesFullStop(t *testing.T) {
+	resultFS := Filter(listOfFiles, "t.")
+
+	expectedResultForFS := []string{"thing.ext"}
+
+	if !compareSlice(resultFS, expectedResultForFS) {
+		t.Errorf("did not get the list of expected files back for filter t., got: %v", resultFS)
 	}
 }
