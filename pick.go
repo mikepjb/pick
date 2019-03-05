@@ -12,6 +12,10 @@ import (
 	"syscall"
 )
 
+const (
+	KeyReturn = 0xA
+)
+
 func Filter(col []string, filter string) []string {
 	result := []string{}
 
@@ -82,22 +86,23 @@ func main() {
 	var userSearch string
 
 	var b []byte = make([]byte, 1)
+
 	for {
 		ttyr.Read(b)
-		userSearch = userSearch + string(b)
+
+		filterResults := Filter(listIn, userSearch)
+
+		switch b[0] {
+		case KeyReturn:
+			fmt.Printf(filterResults[0])
+			return
+		default:
+			fmt.Fprintf(ttyw, "\n:::%v\n", b)
+			userSearch = userSearch + string(b)
+		}
+
 		printInterface(Filter(listIn, userSearch), ttyw)
 		ttyw.WriteString(userSearch)
 		ttyw.Flush()
 	}
-
-	// var result string
-	// for ttyr.Scan() {
-	// 	filterResults := Filter(listIn, ttyr.Text())
-	// 	ttyw.WriteString(strings.Join(filterResults, " ") + "\n")
-
-	// 	result = filterResults[0]
-	// 	break
-	// }
-
-	// fmt.Printf(result)
 }
