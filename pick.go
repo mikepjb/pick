@@ -44,13 +44,11 @@ func printInterface(list []string, w *bufio.Writer) {
 		}
 		w.WriteString(e + "\n")
 	}
-	w.WriteString("> ")
+	fmt.Fprintf(w, "%d > ", len(list))
 	w.Flush()
 }
 
 func main() {
-	listIn := readStdin()
-
 	tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
 
 	if err != nil {
@@ -58,23 +56,20 @@ func main() {
 	}
 
 	ttyw := bufio.NewWriter(tty)
+
+	listIn := readStdin()
 	printInterface(listIn, ttyw)
 
-	// outScanner := bufio.NewScanner(os.Stdout)
-	outScanner := bufio.NewScanner(tty)
+	ttyr := bufio.NewScanner(tty)
 
 	var result string
-	for outScanner.Scan() {
-		filterResults := Filter(listIn, outScanner.Text())
+	for ttyr.Scan() {
+		filterResults := Filter(listIn, ttyr.Text())
 		ttyw.WriteString(strings.Join(filterResults, " ") + "\n")
 
 		result = filterResults[0]
 		break
 	}
 
-	// fmt.Println(Filter(listIn, text))
-	// os.Stdout = originalStdOut
-
-	// fmt.Println(result)
 	fmt.Printf(result)
 }
