@@ -42,13 +42,22 @@ func readStdin() []string {
 }
 
 func printInterface(list []string, w *bufio.Writer) {
+	w.WriteString("\033[20A") // move up 20 lines
+
 	for i, e := range list {
 		if i == 20 {
 			break
 		}
-		w.WriteString(e + "\n")
+		w.WriteString(e + "\033[K" + "\n")
+		// ttyw.WriteString("\033[20A")
 	}
+
+	if len(list) < 20 {
+		fmt.Fprintf(w, strings.Repeat("\033[K"+"\n", (20-len(list))))
+	}
+
 	fmt.Fprintf(w, "%d > ", len(list))
+
 	w.Flush()
 }
 
@@ -64,7 +73,6 @@ func main() {
 	listIn := readStdin()
 	printInterface(listIn, ttyw)
 
-	// ttyr := bufio.NewScanner(tty)
 	ttyr := io.Reader(tty)
 
 	// disable input buffering
@@ -97,12 +105,17 @@ func main() {
 			fmt.Printf(filterResults[0])
 			return
 		default:
-			fmt.Fprintf(ttyw, "\n:::%v\n", b)
+			// debug statement, find the keycode
+			// fmt.Fprintf(ttyw, "\n:::%v\n", b)
 			userSearch = userSearch + string(b)
+			// \033[2K
 		}
 
+		ttyw.WriteString("\033[s") // save cursor position
 		printInterface(Filter(listIn, userSearch), ttyw)
-		ttyw.WriteString(userSearch)
+		ttyw.WriteString("\033[u") // return cursor position
+		// ttyw.WriteString(userSearch)
+		ttyw.WriteString(string(b))
 		ttyw.Flush()
 	}
 }
