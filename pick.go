@@ -12,7 +12,11 @@ import (
 )
 
 const (
-	KeyReturn = 0xA
+	KeyReturn = 0x0A
+	Backspace = 0x7F
+	KeyCtrlW  = 0x17
+	KeyCtrlN  = 0x0E
+	KeyCtrlP  = 0x10
 )
 
 // Inserts '+.*' between all chars to make the regex fuzzy
@@ -101,11 +105,12 @@ func main() {
 		case KeyReturn:
 			fmt.Printf(filterResults[0])
 			return
+		case Backspace:
+			userSearch = userSearch[:len(userSearch)-1]
+		case KeyCtrlW:
+			userSearch = ""
 		default:
-			// debug statement, find the keycode
-			// fmt.Fprintf(ttyw, "\n:::%v\n", b)
 			userSearch = userSearch + string(b)
-			// \033[2K
 		}
 
 		ttyw.WriteString("\033[s") // save cursor position
