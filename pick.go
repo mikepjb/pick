@@ -29,8 +29,19 @@ func Filter(col []string, filter string) []string {
 func printInterface() {
 }
 
+// Display and Output handling
+
+// take stdin - read the list input to pick
+// write info the /dev/tty.. try this now.
+
 func main() {
-	originalStdOut := os.Stdout
+	tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
+	if err != nil {
+		fmt.Printf("excuse me: %v", err)
+	}
+
+	ttyw := bufio.NewWriter(tty)
+	// ttyr := bufio.NewReader(tty)
 
 	scanner := bufio.NewScanner(os.Stdin)
 
@@ -44,8 +55,11 @@ func main() {
 		if i == 15 {
 			break
 		}
-		fmt.Println(e)
+		ttyw.WriteString(e + "\n")
+		// fmt.Println(e) // this goes to stdout
 	}
+
+	ttyw.Flush()
 
 	fmt.Print("> ")
 
@@ -62,6 +76,7 @@ func main() {
 	}
 
 	// fmt.Println(Filter(haystack, text))
-	os.Stdout = originalStdOut
+	// os.Stdout = originalStdOut
+
 	fmt.Println(result)
 }
