@@ -29,7 +29,6 @@ nnoremap <leader>f :call Pick("find * -type f", ":e")<cr>
 ## TODO
 
 - Case insensitive search (on lowercase input)
-- Ctrl J/K up/down selection
 
 ## Contributing
 
