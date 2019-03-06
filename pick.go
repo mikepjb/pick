@@ -75,7 +75,6 @@ func printInterface(list []string, w *bufio.Writer) {
 	}
 
 	fmt.Fprintf(w, "%03d > ", len(list))
-
 	w.Flush()
 }
 
@@ -95,6 +94,7 @@ func main() {
 	var b []byte = make([]byte, 1)
 	listIn := readStdin()
 	printInterface(listIn, ttyw)
+	ttyw.WriteString("\033[s") // save cursor position
 
 	for {
 		ttyr.Read(b)
@@ -113,9 +113,11 @@ func main() {
 			userSearch = userSearch + string(b)
 		}
 
-		ttyw.WriteString("\033[s") // save cursor position
 		printInterface(Filter(listIn, userSearch), ttyw)
-		ttyw.WriteString("\033[u") // return cursor position
+		ttyw.WriteString("\033[u")   // return cursor position
+		ttyw.WriteString("\033[1D")  // left one
+		ttyw.WriteString("\033[0K")  // return cursor position
+		ttyw.WriteString(userSearch) // return cursor position
 		ttyw.Flush()
 	}
 }
