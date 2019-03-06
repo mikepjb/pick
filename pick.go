@@ -58,7 +58,7 @@ func readStdin() []string {
 	return list
 }
 
-func printInterface(list []string, w *bufio.Writer) {
+func printInterface(cpos int, list []string, w *bufio.Writer) {
 	w.WriteString("\033[19A") // move up 19 lines
 	w.WriteString("\033[1F")  // move to beginning of previous line
 
@@ -66,8 +66,15 @@ func printInterface(list []string, w *bufio.Writer) {
 		if i == 20 {
 			break
 		}
-		w.WriteString(e + "\033[K" + "\n")
-		// ttyw.WriteString("\033[20A")
+		if cpos == i {
+			w.WriteString("\033[37m")
+			w.WriteString("\033[40m")
+		}
+		w.WriteString(e)
+		if cpos == i {
+			w.WriteString("\033[0m")
+		}
+		w.WriteString("\033[K" + "\n")
 	}
 
 	if len(list) < 20 {
@@ -91,9 +98,10 @@ func main() {
 	ui.SetAndProtectTerm()
 
 	var userSearch string
+	cpos := 0 // choice position
 	var b []byte = make([]byte, 1)
 	listIn := readStdin()
-	printInterface(listIn, ttyw)
+	printInterface(cpos, listIn, ttyw)
 	ttyw.WriteString("\033[s") // save cursor position
 
 	for {
@@ -103,17 +111,21 @@ func main() {
 
 		switch b[0] {
 		case KeyReturn:
-			fmt.Printf(filterResults[0])
+			fmt.Printf(filterResults[cpos])
 			return
 		case Backspace:
 			userSearch = userSearch[:len(userSearch)-1]
 		case KeyCtrlW:
 			userSearch = ""
+		case KeyCtrlN:
+			cpos++
+		case KeyCtrlP:
+			cpos--
 		default:
 			userSearch = userSearch + string(b)
 		}
 
-		printInterface(Filter(listIn, userSearch), ttyw)
+		printInterface(cpos, Filter(listIn, userSearch), ttyw)
 		ttyw.WriteString("\033[u")   // return cursor position
 		ttyw.WriteString("\033[1D")  // left one
 		ttyw.WriteString("\033[0K")  // return cursor position
