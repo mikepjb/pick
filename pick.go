@@ -34,17 +34,20 @@ func Fuzzy(filter string) string {
 }
 
 func Filter(col []string, filter string) []string {
-	result := []string{}
+	exactMatches := []string{}
+	fuzzyMatches := []string{}
 
 	regexpFilter := Fuzzy(strings.Replace(filter, ".", "\\.", -1))
 
 	for _, e := range col {
 		match, _ := regexp.MatchString(regexpFilter, e)
-		if match {
-			result = append(result, e)
+		if strings.Contains(e, filter) {
+			exactMatches = append(exactMatches, e)
+		} else if match {
+			fuzzyMatches = append(fuzzyMatches, e)
 		}
 	}
-	return result
+	return append(exactMatches, fuzzyMatches...)
 }
 
 func readStdin() []string {
