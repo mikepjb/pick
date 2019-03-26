@@ -21,7 +21,7 @@ const (
 
 // Inserts '+.*' between all chars to make the regex fuzzy
 func Fuzzy(filter string) string {
-	var newFilter string
+	newFilter := "(?i)" // ?i makes is case insensitive
 
 	for _, r := range filter {
 		newFilter += string(r)
