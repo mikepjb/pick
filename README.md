@@ -26,10 +26,6 @@ endfunc
 nnoremap <leader>f :call Pick("find * -type f", ":e")<cr>
 ```
 
-## TODO
-
-- Case insensitive search (on lowercase input)
-
 ## Contributing
 
 Feel free to make a pull request.
