@@ -59,13 +59,6 @@ func Filter(col []string, filter string) []string {
 				matches = append(matches, Match{e, len(match)})
 			}
 		}
-
-		// match, _ := regexp.MatchString(regexpFilter, e)
-		// if strings.Contains(e, filter) {
-		// 	exactMatches = append(exactMatches, e)
-		// } else if match {
-		// 	fuzzyMatches = append(fuzzyMatches, e)
-		// }
 	}
 
 	sort.Sort(matches)
