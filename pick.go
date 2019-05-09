@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/mikepjb/pick/src/ui"
@@ -21,34 +22,61 @@ const (
 )
 
 // Inserts '+.*' between all chars to make the regex fuzzy
-func Fuzzy(filter string) string {
+func Fuzzy(filter string) (*regexp.Regexp, error) {
 	newFilter := "(?i)" // ?i makes is case insensitive
 
-	for _, r := range filter {
-		newFilter += string(r)
-		if string(r) != "\\" {
-			newFilter += "+.*"
-		}
-	}
-
-	return newFilter
+	return regexp.Compile(
+		newFilter + strings.Join(strings.Split(filter, ""), ".*?"))
 }
 
-func Filter(col []string, filter string) []string {
-	exactMatches := []string{}
-	fuzzyMatches := []string{}
+type Match struct {
+	filePath string
+	rank     int
+}
 
-	regexpFilter := Fuzzy(strings.Replace(filter, ".", "\\.", -1))
+type Matches []Match
+
+func (m Matches) Len() int           { return len(m) }
+func (m Matches) Less(i, j int) bool { return m[i].rank < m[j].rank }
+func (m Matches) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
+
+func Filter(col []string, filter string) []string {
+	matches := Matches{}
+
+	fuzzy, err := Fuzzy(strings.Replace(filter, ".", "\\.", -1))
+
+	if err != nil {
+		fmt.Errorf("bad regexp compilation %v\n", err)
+	}
 
 	for _, e := range col {
-		match, _ := regexp.MatchString(regexpFilter, e)
-		if strings.Contains(e, filter) {
-			exactMatches = append(exactMatches, e)
-		} else if match {
-			fuzzyMatches = append(fuzzyMatches, e)
+		fuzzyMatches := fuzzy.FindAllString(e, -1)
+
+		if len(fuzzyMatches) != 0 {
+			match := fuzzyMatches[len(fuzzyMatches)-1]
+
+			if len(match) >= len(filter) {
+				matches = append(matches, Match{e, len(match)})
+			}
 		}
+
+		// match, _ := regexp.MatchString(regexpFilter, e)
+		// if strings.Contains(e, filter) {
+		// 	exactMatches = append(exactMatches, e)
+		// } else if match {
+		// 	fuzzyMatches = append(fuzzyMatches, e)
+		// }
 	}
-	return append(exactMatches, fuzzyMatches...)
+
+	sort.Sort(matches)
+
+	filePaths := []string{}
+
+	for _, match := range matches {
+		filePaths = append(filePaths, match.filePath)
+	}
+
+	return filePaths
 }
 
 func readStdin() []string {
@@ -96,7 +124,9 @@ func printInterface(cpos int, list []string, w *bufio.Writer) {
 // based on this, include in new list
 func match(filePath string, list []string) bool {
 	for _, ignoreMatch := range list {
-		if strings.HasPrefix(filePath, ignoreMatch) {
+		// ignoring / prefix allows entries in .gitignore to work but is a poor fix.
+		// regex matching should be employed (or whatever .gitignore uses to match)
+		if strings.HasPrefix(filePath, strings.TrimPrefix(ignoreMatch, "/")) {
 			return true
 		}
 	}

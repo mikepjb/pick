@@ -69,7 +69,7 @@ func TestFindsFuzzySearches(t *testing.T) {
 }
 
 func TestReplacesFullStop(t *testing.T) {
-	resultFS := Filter(listOfFiles, "t.")
+	resultFS := Filter(listOfFiles, "tx")
 
 	expectedResultForFS := []string{"thing.ext"}
 
