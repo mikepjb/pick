@@ -25,8 +25,8 @@ const (
 func Fuzzy(filter string) (*regexp.Regexp, error) {
 	newFilter := "(?i)" // ?i makes is case insensitive
 
-	return regexp.Compile(
-		newFilter + strings.Join(strings.Split(filter, ""), ".*?"))
+	regexpString := newFilter + strings.Join(strings.Split(filter, ""), ".*?")
+	return regexp.Compile(regexpString)
 }
 
 type Match struct {

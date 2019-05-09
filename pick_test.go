@@ -78,6 +78,26 @@ func TestReplacesFullStop(t *testing.T) {
 	}
 }
 
+func TestRanksClosestMatch(t *testing.T) {
+	anotherListOfFiles := []string{
+		"src/main/clojure/b/s/util/date.clj",
+		"src/main/clojure/s/bs/routing.clj",
+		"src/test/java/com/co/trading/processes/calculations/InvoiceAmountsCalculatorTest.java",
+	}
+
+	resultTS := Filter(anotherListOfFiles, "routclj")
+
+	expectedResultForTS := []string{
+		"src/main/clojure/s/bs/routing.clj",
+		"src/main/clojure/b/s/util/date.clj",
+		"src/test/java/com/co/trading/processes/calculations/InvoiceAmountsCalculatorTest.java",
+	}
+
+	if !compareSlice(resultTS, expectedResultForTS) {
+		t.Errorf("did not get the list of expected files back for filter ts, got: %v", resultTS)
+	}
+}
+
 func TestFiltersFromList(t *testing.T) {
 	filterList := []string{"node_modules/"}
 
