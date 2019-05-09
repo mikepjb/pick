@@ -77,3 +77,16 @@ func TestReplacesFullStop(t *testing.T) {
 		t.Errorf("did not get the list of expected files back for filter t., got: %v", resultFS)
 	}
 }
+
+func TestFiltersFromList(t *testing.T) {
+	filterList := []string{"node_modules/"}
+
+	projectList := []string{"node_modules/a_thing.txt", "this_thing.txt"}
+
+	filteredList := filterByList(projectList, filterList)
+	expectedList := []string{"this_thing.txt"}
+
+	if !compareSlice(filteredList, expectedList) {
+		t.Errorf("list not filtered correctly, got: %v\n", filteredList)
+	}
+}

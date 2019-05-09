@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
@@ -88,6 +89,32 @@ func printInterface(cpos int, list []string, w *bufio.Writer) {
 	w.Flush()
 }
 
+// for each filePath in a list
+// match against ALL gitignores
+// if any match -> return false
+// otherwise -> return true
+// based on this, include in new list
+func match(filePath string, list []string) bool {
+	for _, ignoreMatch := range list {
+		if strings.HasPrefix(filePath, ignoreMatch) {
+			return true
+		}
+	}
+	return false
+}
+
+func filterByList(source []string, list []string) []string {
+	filteredList := []string{}
+
+	for _, filePath := range source {
+		if !match(filePath, list) {
+			filteredList = append(filteredList, filePath)
+		}
+	}
+
+	return filteredList
+}
+
 func main() {
 	tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
 
@@ -104,6 +131,14 @@ func main() {
 	cpos := 0 // choice position
 	var b []byte = make([]byte, 1)
 	listIn := readStdin()
+
+	ignoreFile, err := ioutil.ReadFile(".gitignore")
+
+	if err == nil {
+		ignoreList := strings.Split(strings.TrimSuffix(string(ignoreFile), "\n"), "\n")
+		listIn = filterByList(listIn, ignoreList)
+	}
+
 	printInterface(cpos, listIn, ttyw)
 	ttyw.WriteString("\033[s") // save cursor position
 
