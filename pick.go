@@ -14,49 +14,49 @@ import (
 )
 
 const (
-	KeyReturn = 0x0A
-	Backspace = 0x7F
-	KeyCtrlW  = 0x17
-	KeyCtrlN  = 0x0E
-	KeyCtrlP  = 0x10
+	keyReturn = 0x0A
+	backspace = 0x7F
+	keyCtrlW  = 0x17
+	keyCtrlN  = 0x0E
+	keyCtrlP  = 0x10
 )
 
-// Inserts '+.*' between all chars to make the regex fuzzy
-func Fuzzy(filter string) (*regexp.Regexp, error) {
+func fuzzy(filter string) (*regexp.Regexp, error) {
 	newFilter := "(?i)" // ?i makes is case insensitive
 
 	regexpString := newFilter + strings.Join(strings.Split(filter, ""), ".*?")
 	return regexp.Compile(regexpString)
 }
 
-type Match struct {
+type match struct {
 	filePath string
 	rank     int
 }
 
-type Matches []Match
+type matches []match
 
-func (m Matches) Len() int           { return len(m) }
-func (m Matches) Less(i, j int) bool { return m[i].rank < m[j].rank }
-func (m Matches) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
+// TODO: correct make errors
+func (m matches) Len() int           { return len(m) }
+func (m matches) Less(i, j int) bool { return m[i].rank < m[j].rank }
+func (m matches) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
 
-func Filter(col []string, filter string) []string {
-	matches := Matches{}
+func filter(col []string, filter string) []string {
+	matches := matches{}
 
-	fuzzy, err := Fuzzy(strings.Replace(filter, ".", "\\.", -1))
+	freg, err := fuzzy(strings.Replace(filter, ".", "\\.", -1))
 
 	if err != nil {
-		fmt.Errorf("bad regexp compilation %v\n", err)
+		fmt.Errorf("bad regexp compilation %v", err)
 	}
 
 	for _, e := range col {
-		fuzzyMatches := fuzzy.FindAllString(e, -1)
+		fuzzyMatches := freg.FindAllString(e, -1)
 
 		if len(fuzzyMatches) != 0 {
-			match := fuzzyMatches[len(fuzzyMatches)-1]
+			fmatch := fuzzyMatches[len(fuzzyMatches)-1]
 
-			if len(match) >= len(filter) {
-				matches = append(matches, Match{e, len(match)})
+			if len(fmatch) >= len(filter) {
+				matches = append(matches, match{e, len(fmatch)})
 			}
 		}
 	}
@@ -93,11 +93,11 @@ func printInterface(cpos int, list []string, w *bufio.Writer) {
 		}
 		if cpos == i {
 			w.WriteString("\033[37m")
-			w.WriteString("\033[40m")
+			w.WriteString("\033[0m")
 		}
 		w.WriteString(e)
 		if cpos == i {
-			w.WriteString("\033[0m")
+			w.WriteString("\033[37m")
 		}
 		w.WriteString("\033[K" + "\n")
 	}
@@ -110,15 +110,8 @@ func printInterface(cpos int, list []string, w *bufio.Writer) {
 	w.Flush()
 }
 
-// for each filePath in a list
-// match against ALL gitignores
-// if any match -> return false
-// otherwise -> return true
-// based on this, include in new list
-func match(filePath string, list []string) bool {
+func contains(filePath string, list []string) bool {
 	for _, ignoreMatch := range list {
-		// ignoring / prefix allows entries in .gitignore to work but is a poor fix.
-		// regex matching should be employed (or whatever .gitignore uses to match)
 		if strings.HasPrefix(filePath, strings.TrimPrefix(ignoreMatch, "/")) {
 			return true
 		}
@@ -130,7 +123,7 @@ func filterByList(source []string, list []string) []string {
 	filteredList := []string{}
 
 	for _, filePath := range source {
-		if !match(filePath, list) {
+		if !contains(filePath, list) {
 			filteredList = append(filteredList, filePath)
 		}
 	}
@@ -168,25 +161,25 @@ func main() {
 	for {
 		ttyr.Read(b)
 
-		filterResults := Filter(listIn, userSearch)
+		filterResults := filter(listIn, userSearch)
 
 		switch b[0] {
-		case KeyReturn:
+		case keyReturn:
 			fmt.Printf(filterResults[cpos])
 			return
-		case Backspace:
+		case backspace:
 			userSearch = userSearch[:len(userSearch)-1]
-		case KeyCtrlW:
+		case keyCtrlW:
 			userSearch = ""
-		case KeyCtrlN:
+		case keyCtrlN:
 			cpos++
-		case KeyCtrlP:
+		case keyCtrlP:
 			cpos--
 		default:
 			userSearch = userSearch + string(b)
 		}
 
-		printInterface(cpos, Filter(listIn, userSearch), ttyw)
+		printInterface(cpos, filter(listIn, userSearch), ttyw)
 		ttyw.WriteString("\033[u")   // return cursor position
 		ttyw.WriteString("\033[1D")  // left one
 		ttyw.WriteString("\033[0K")  // return cursor position
