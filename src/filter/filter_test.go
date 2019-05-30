@@ -1,6 +1,7 @@
-package main
+package filter_test
 
 import (
+	"github.com/mikepjb/pick/src/filter"
 	"testing"
 )
 
@@ -33,7 +34,7 @@ var listOfFiles = []string{
 
 // I want to be able to filter a list and only keep elements beginning with b.
 func TestFindsSequentialSearches(t *testing.T) {
-	resultB := Filter(listOfFiles, "b")
+	resultB := filter.Filter(listOfFiles, "b")
 
 	expectedResultForB := []string{
 		"bar",
@@ -44,7 +45,7 @@ func TestFindsSequentialSearches(t *testing.T) {
 		t.Errorf("did not get the list of expected files back for filter b, got %v", resultB)
 	}
 
-	resultT := Filter(listOfFiles, "t")
+	resultT := filter.Filter(listOfFiles, "t")
 
 	expectedResultForT := []string{
 		"thing",
@@ -59,7 +60,7 @@ func TestFindsSequentialSearches(t *testing.T) {
 }
 
 func TestFindsFuzzySearches(t *testing.T) {
-	resultTS := Filter(listOfFiles, "ts")
+	resultTS := filter.Filter(listOfFiles, "ts")
 
 	expectedResultForTS := []string{"things"}
 
@@ -69,7 +70,7 @@ func TestFindsFuzzySearches(t *testing.T) {
 }
 
 func TestReplacesFullStop(t *testing.T) {
-	resultFS := Filter(listOfFiles, "tx")
+	resultFS := filter.Filter(listOfFiles, "tx")
 
 	expectedResultForFS := []string{"thing.ext"}
 
@@ -85,7 +86,7 @@ func TestRanksClosestMatch(t *testing.T) {
 		"src/test/java/com/co/trading/processes/calculations/InvoiceAmountsCalculatorTest.java",
 	}
 
-	resultTS := Filter(anotherListOfFiles, "routclj")
+	resultTS := filter.Filter(anotherListOfFiles, "routclj")
 
 	expectedResultForTS := []string{
 		"src/main/clojure/s/bs/routing.clj",
@@ -103,7 +104,7 @@ func TestFiltersFromList(t *testing.T) {
 
 	projectList := []string{"node_modules/a_thing.txt", "this_thing.txt"}
 
-	filteredList := filterByList(projectList, filterList)
+	filteredList := filter.FilterByList(projectList, filterList)
 	expectedList := []string{"this_thing.txt"}
 
 	if !compareSlice(filteredList, expectedList) {

@@ -3,11 +3,10 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/mikepjb/pick/src/filter"
 	"io"
 	"io/ioutil"
 	"os"
-	"regexp"
-	"sort"
 	"strings"
 
 	"github.com/mikepjb/pick/src/ui"
@@ -21,57 +20,6 @@ const (
 	keyCtrlP  = 0x10
 )
 
-func fuzzy(filter string) (*regexp.Regexp, error) {
-	newFilter := "(?i)" // ?i makes is case insensitive
-
-	regexpString := newFilter + strings.Join(strings.Split(filter, ""), ".*?")
-	return regexp.Compile(regexpString)
-}
-
-type match struct {
-	filePath string
-	rank     int
-}
-
-type matches []match
-
-// TODO: correct make errors
-func (m matches) Len() int           { return len(m) }
-func (m matches) Less(i, j int) bool { return m[i].rank < m[j].rank }
-func (m matches) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
-
-func filter(col []string, filter string) []string {
-	matches := matches{}
-
-	freg, err := fuzzy(strings.Replace(filter, ".", "\\.", -1))
-
-	if err != nil {
-		fmt.Errorf("bad regexp compilation %v", err)
-	}
-
-	for _, e := range col {
-		fuzzyMatches := freg.FindAllString(e, -1)
-
-		if len(fuzzyMatches) != 0 {
-			fmatch := fuzzyMatches[len(fuzzyMatches)-1]
-
-			if len(fmatch) >= len(filter) {
-				matches = append(matches, match{e, len(fmatch)})
-			}
-		}
-	}
-
-	sort.Sort(matches)
-
-	filePaths := []string{}
-
-	for _, match := range matches {
-		filePaths = append(filePaths, match.filePath)
-	}
-
-	return filePaths
-}
-
 func readStdin() []string {
 	scanner := bufio.NewScanner(os.Stdin)
 	var list []string
@@ -83,52 +31,52 @@ func readStdin() []string {
 	return list
 }
 
+type errWriter struct {
+	w   *bufio.Writer
+	err error
+}
+
+func (e *errWriter) WriteString(s string) {
+	if e.err != nil {
+		return
+	}
+	_, e.err = e.w.WriteString(s)
+}
+
+func (e *errWriter) Err() error {
+	return e.err
+}
+
 func printInterface(cpos int, list []string, w *bufio.Writer) {
-	w.WriteString("\033[19A") // move up 19 lines
-	w.WriteString("\033[1F")  // move to beginning of previous line
+	ew := &errWriter{w: w}
+	ew.WriteString("\033[19A") // move up 19 lines
+	ew.WriteString("\033[1F")  // move to beginning of previous line
 
 	for i, e := range list {
 		if i == 20 {
 			break
 		}
 		if cpos == i {
-			w.WriteString("\033[37m")
-			w.WriteString("\033[0m")
+			ew.WriteString("\033[37m")
+			ew.WriteString("\033[0m")
 		}
-		w.WriteString(e)
+		ew.WriteString(e)
 		if cpos == i {
-			w.WriteString("\033[37m")
+			ew.WriteString("\033[37m")
 		}
-		w.WriteString("\033[K" + "\n")
+		ew.WriteString("\033[K" + "\n")
 	}
 
 	if len(list) < 20 {
 		fmt.Fprintf(w, strings.Repeat("\033[K"+"\n", (20-len(list))))
 	}
 
+	if ew.Err() != nil {
+		fmt.Printf("could not write interface: %v\n", ew.Err())
+	}
+
 	fmt.Fprintf(w, "%03d > ", len(list))
 	w.Flush()
-}
-
-func contains(filePath string, list []string) bool {
-	for _, ignoreMatch := range list {
-		if strings.HasPrefix(filePath, strings.TrimPrefix(ignoreMatch, "/")) {
-			return true
-		}
-	}
-	return false
-}
-
-func filterByList(source []string, list []string) []string {
-	filteredList := []string{}
-
-	for _, filePath := range source {
-		if !contains(filePath, list) {
-			filteredList = append(filteredList, filePath)
-		}
-	}
-
-	return filteredList
 }
 
 func main() {
@@ -152,7 +100,7 @@ func main() {
 
 	if err == nil {
 		ignoreList := strings.Split(strings.TrimSuffix(string(ignoreFile), "\n"), "\n")
-		listIn = filterByList(listIn, ignoreList)
+		listIn = filter.FilterByList(listIn, ignoreList)
 	}
 
 	printInterface(cpos, listIn, ttyw)
@@ -161,7 +109,7 @@ func main() {
 	for {
 		ttyr.Read(b)
 
-		filterResults := filter(listIn, userSearch)
+		filterResults := filter.Filter(listIn, userSearch)
 
 		switch b[0] {
 		case keyReturn:
@@ -179,7 +127,7 @@ func main() {
 			userSearch = userSearch + string(b)
 		}
 
-		printInterface(cpos, filter(listIn, userSearch), ttyw)
+		printInterface(cpos, filter.Filter(listIn, userSearch), ttyw)
 		ttyw.WriteString("\033[u")   // return cursor position
 		ttyw.WriteString("\033[1D")  // left one
 		ttyw.WriteString("\033[0K")  // return cursor position
