@@ -58,11 +58,10 @@ func printInterface(cpos int, list []string, w *bufio.Writer) {
 		}
 		if cpos == i {
 			ew.WriteString("\033[37m")
-			ew.WriteString("\033[0m")
 		}
 		ew.WriteString(e)
 		if cpos == i {
-			ew.WriteString("\033[37m")
+			ew.WriteString("\033[0m")
 		}
 		ew.WriteString("\033[K" + "\n")
 	}
