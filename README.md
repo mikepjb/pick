@@ -2,6 +2,15 @@
 
 Fuzzy file finder like selecta in around 150 lines of Go
 
+## Design
+
+go through each candidate (links passed to pick):
+  - for each character in the search string:
+    - if you match, highlight it and continue to the next
+      (specifically avoid multiple highlights of the same word OR avoid double
+      counting?!?)
+    - rank by character match and length between first and last match
+
 ## Usage
 
 On the command line:  
